@@ -1,0 +1,11 @@
+name: html_parser
+version: 0.1.0+dev
+description: A fast and forgiving HTML parser for Dart.
+authors:
+  - Matan Lurey <matanl@google.com>
+homepage: https://github.com/matanlurey/html_parser
+dependencies:
+  charcode:
+dev_dependencies:
+  dart_style:
+  test:
