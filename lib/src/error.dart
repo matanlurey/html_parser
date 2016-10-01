@@ -46,11 +46,11 @@ class LexerError extends FriendlyError {
   String get errorMessage {
     switch (kind) {
       case LexerErrorKind.misMatchedClose:
-        return 'I found an unecessary closing tag.';
+        return 'I found an unnecessary closing tag.';
       case LexerErrorKind.misMatchedOpen:
-        return 'I found an unecessary opening tag.';
+        return 'I found an unnecessary opening tag.';
       default:
-        return "This shouldn't happen";
+        return "This shouldn't happen.";
     }
   }
 }
