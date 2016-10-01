@@ -13,11 +13,9 @@ class _NodeBuilderHtmlParser implements HtmlParser {
   const _NodeBuilderHtmlParser();
 
   @override
-  Node parse(String html, {/* Uri | String */ sourceUrl}) {
-    return new _NodeBuilder(
-            new HtmlLexer(html, sourceUrl: sourceUrl).tokenize().iterator)
-        .build();
-  }
+  Node parse(String html, {/* Uri | String */ sourceUrl}) => new _NodeBuilder(
+          new HtmlLexer(html, sourceUrl: sourceUrl).tokenize().iterator)
+      .build();
 }
 
 // Helper class to make iterating over an Iterator<Html> easier.
@@ -77,6 +75,27 @@ class _NodeBuilder {
     return _stack.removeLast();
   }
 
+  void _consumeAttribute(HtmlToken token) {
+    assert(token.type == HtmlTokenType.attributeNameStart);
+    final nextToken = _tokens.advance();
+    if (nextToken.type != HtmlTokenType.attributeName) {
+      throw new FormatException('Expected attribute name, got $nextToken');
+    }
+    final attributeName = nextToken.value;
+    String attributeValue;
+    if (_tokens.peek().type == HtmlTokenType.attributeValueStart) {
+      _tokens.advance();
+      attributeValue = _tokens.advance().value;
+    }
+    (_stack.last as Element).attributes.add(
+          new Attribute(attributeName, attributeValue, token),
+        );
+    if (_tokens.peek().type == HtmlTokenType.attributeNameStart) {
+      _tokens.advance();
+      _consumeAttribute(token);
+    }
+  }
+
   void _consumeTagOpen(HtmlToken token) {
     assert(token.type == HtmlTokenType.tagOpenStart);
     final nextToken = _tokens.advance();
@@ -87,8 +106,13 @@ class _NodeBuilder {
         _stack.last.childNodes.add(element);
       }
       _stack.add(element);
-      if (_tokens.advance().type != HtmlTokenType.tagOpenEnd) {
-        throw new FormatException('Expected tagOpenEnd, got ${_tokens.peek()}');
+      var nextNextToken = _tokens.advance();
+      if (nextNextToken.type == HtmlTokenType.attributeNameStart) {
+        _consumeAttribute(nextNextToken);
+        nextNextToken = _tokens.advance();
+      }
+      if (nextNextToken.type != HtmlTokenType.tagOpenEnd) {
+        throw new FormatException('Expected tagOpenEnd, got ${nextNextToken}');
       }
     } else {
       throw new FormatException('Expected tagName, got ${nextToken}.');
@@ -99,7 +123,8 @@ class _NodeBuilder {
     assert(token.type == HtmlTokenType.tagCloseStart);
     final nextToken = _tokens.advance();
     if (nextToken.type == HtmlTokenType.tagName) {
-      assert(_tokens.advance().type == HtmlTokenType.tagCloseEnd);
+      final nextNextToken = _tokens.advance();
+      assert(nextNextToken.type == HtmlTokenType.tagCloseEnd);
       final pop = _stack.removeLast();
       if (_stack.isEmpty) {
         _root.add(pop);
