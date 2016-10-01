@@ -1,7 +1,32 @@
 import 'package:source_span/source_span.dart';
 
+/// A pretty error format for the project.
+abstract class FriendlyError extends Error {
+  /// the line number of the error.
+  String get line;
+
+  /// the sourceFile (if availible) or None.
+  String get sourceFile;
+
+  /// the text span where the error is located.
+  String get sourceLine;
+
+  /// A friendly, Actionable error message.
+  String get errorMessage;
+
+  @override
+  String toString() {
+    return '\n---- PARSE ERROR ----------- $sourceFile\n' +
+        '\n' +
+        'There was a problem while parsing the following line:\n' +
+        '$line| $sourceLine\n' +
+        '${' ' * (line.length + sourceLine.length + 1)}^\n' +
+        '$errorMessage\n';
+  }
+}
+
 /// Simple errors which can occur during lexical analysis.
-class LexerError extends Error {
+class LexerError extends FriendlyError {
   /// The source span where the error was encountered, from column 0.
   final SourceSpan span;
 
@@ -11,10 +36,14 @@ class LexerError extends Error {
   /// Used to signal possible malformed html to the parser.
   LexerError(this.span, this.kind);
 
-  /// Returns a string representation of the file path.
-  String get filePath => span.sourceUrl?.path ?? 'No File';
-
-  String _errorMessage() {
+  @override
+  String get sourceFile => span.sourceUrl?.path ?? 'No File';
+  @override
+  String get sourceLine => span.text;
+  @override
+  String get line => '${span.start.line}';
+  @override
+  String get errorMessage {
     switch (kind) {
       case LexerErrorKind.misMatchedClose:
         return 'I found an unecessary closing tag.';
@@ -23,20 +52,6 @@ class LexerError extends Error {
       default:
         return "This shouldn't happen";
     }
-  }
-
-  /// If the error can not be handled, use this nicely formatted message.
-  /// called a parsing error because people know what that is.
-  /// TODO: standard error formatting class?
-  @override
-  String toString() {
-    final index = span.start.line;
-    return '\n---- PARSE ERROR ----------- $filePath\n' +
-        '\n' +
-        'There was a problem while parsing the following line:\n' +
-        '$index| ${span.text}\n' +
-        '  ${' ' * index.toString().length}${' ' * (span.text.length - 1)}^\n' +
-        '${_errorMessage()}\n';
   }
 }
 

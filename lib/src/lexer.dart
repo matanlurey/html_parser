@@ -2,7 +2,7 @@ import 'package:charcode/charcode.dart';
 import 'package:source_span/source_span.dart';
 import 'package:string_scanner/string_scanner.dart';
 
-import 'lexer_error.dart';
+import 'error.dart';
 
 /// A parsed HTML token.
 abstract class HtmlToken {
