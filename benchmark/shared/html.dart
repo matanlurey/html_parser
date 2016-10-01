@@ -14,8 +14,12 @@ const HTML = r'''
           <g>5</g>
           <g>6</g>
           <a>
-          <b>
-            <c>
+          <b><!-- SOME EXTRA LONG COMMENT -->
+            <c><!--
+            Multi
+              Line
+                Comment
+            -->
               <d></d>
               <d></d>
               <d></d>
