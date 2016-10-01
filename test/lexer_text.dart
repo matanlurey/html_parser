@@ -1,5 +1,5 @@
 import 'package:html_parser/src/lexer.dart';
-import 'package:html_parser/src/lexer_error.dart';
+import 'package:html_parser/src/error.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -46,7 +46,7 @@ void main() {
       ]);
     test('it should throw basic missmatched tag errors', () {
       final raw =
-          '<h1>\n<p [baz]="foo"> This is some markup</p>\n<div>some mo</div></h1>>';
+          '<h1>\n<p [baz]="foo"> This is markup</p>\n<div>some mo</div></h1>>';
       final lexer = new HtmlLexer(raw);
       expect(
           () => lexer.tokenize().toList(),
