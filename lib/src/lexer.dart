@@ -143,46 +143,56 @@ class HtmlLexer {
       ),
       _scanner.substring(_sentinel),
     );
-    _sentinel = _scanner.position;
+    _reset();
     return span;
   }
 
-  SourceSpan _point([int offset = 0]) => new SourceLocation(
-        _scanner.position + offset,
-        sourceUrl: _scanner.sourceUrl,
-      )
-          .pointSpan();
+  SourceSpan _point([int offset = 0]) {
+    final span = new SourceLocation(_scanner.position + offset,
+            sourceUrl: _scanner.sourceUrl)
+        .pointSpan();
+    _reset();
+    return span;
+  }
+
+  void _reset() {
+    _sentinel = _scanner.position;
+  }
 
   /// Returns a lazy [Iterable<HtmlToken>].
   Iterable<HtmlToken> tokenize({void onError(HtmlTokenError error)}) sync* {
-    bool hasTextSpan() => _scanner.position - 1 > _sentinel;
+    bool hasTextSpan() => _scanner.position > _sentinel;
     while (!_scanner.isDone) {
       var index = _scanner.position;
       switch (_state) {
         case HtmlLexerState.scanningText:
-          if (_scanner.scanChar($lt)) {
+          if (_scanner.peekChar() == $lt) {
             if (hasTextSpan()) {
               yield new HtmlTokenImpl.text(_span());
             }
+            _scanner.readChar();
             if (_scanner.scanChar($slash)) {
               _state = HtmlLexerState.scanningCloseTag;
               yield new HtmlTokenImpl.tagCloseStart(_point());
             } else {
               _state = HtmlLexerState.scanningOpenTag;
+              _sentinel++;
               yield new HtmlTokenImpl.tagOpenStart(_point());
             }
           }
           break;
         case HtmlLexerState.scanningOpenTag:
-          if (_scanner.scanChar($gt)) {
+          if (_scanner.peekChar() == $gt) {
             yield new HtmlTokenImpl.tagName(_span());
+            _scanner.readChar();
             yield new HtmlTokenImpl.tagOpenEnd(_point());
             _state = HtmlLexerState.scanningText;
           }
           break;
         case HtmlLexerState.scanningCloseTag:
-          if (_scanner.scanChar($gt)) {
+          if (_scanner.peekChar() == $gt) {
             yield new HtmlTokenImpl.tagName(_span());
+            _scanner.readChar();
             yield new HtmlTokenImpl.tagCloseEnd(_point());
             _state = HtmlLexerState.scanningText;
           }
