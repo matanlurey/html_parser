@@ -10,5 +10,5 @@ This package is **in development** as an experiment to replace the
 transpiled HTML parser from [angular_2][angular_2_gh]. It's goals are
 speed, ease of use, and [great error messages][elm].
 
-[angular2_gh]: https://github.com/dart-lang/angular2
+[angular_2_gh]: https://github.com/dart-lang/angular2
 [elm]: http://elm-lang.org/blog/compiler-errors-for-humans
