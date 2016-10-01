@@ -65,10 +65,12 @@ class _NodeBuilder {
         case HtmlTokenType.text:
           _consumeText(_tokens.advance());
           break;
+        case HtmlTokenType.comment:
+          _stack.last.childNodes.add(new Comment(_tokens.peek().value));
+          _tokens.advance();
+          break;
         default:
-          throw new UnimplementedError(
-            'parse(${_tokens.peek().type} from "${_tokens.peek().value}"})',
-          );
+          throw new FormatException('Unexpected: ${_tokens.peek()}');
       }
     }
     assert(_stack.length == 1);

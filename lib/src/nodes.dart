@@ -10,6 +10,15 @@ abstract class Node {
   List<Node> get childNodes;
 }
 
+class Comment extends Node {
+  final String value;
+
+  Comment(this.value);
+
+  @override
+  List<Node> get childNodes => const [];
+}
+
 class Fragment extends Node {
   @override
   final List<Node> childNodes;
@@ -80,6 +89,8 @@ String nodeToString(Node node, [StringBuffer buffer]) {
     buffer..write('</')..write(node.tagName)..write('>');
   } else if (node is Text) {
     buffer.write(node.value);
+  } else if (node is Comment) {
+    buffer..write('<!--')..write(node.value)..write('-->');
   }
   return '';
 }
