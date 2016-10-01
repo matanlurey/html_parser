@@ -53,6 +53,19 @@ void main() {
           throwsA(predicate((e) =>
               e is LexerError && e.kind == LexerErrorKind.misMatchedClose)));
     });
+    test('supports lexing comments', () {
+      final lex = new HtmlLexer('<div>Hello<!--World--></div>');
+      expect(_toTypes(lex).toList(), [
+        HtmlTokenType.tagOpenStart,
+        HtmlTokenType.tagName,
+        HtmlTokenType.tagOpenEnd,
+        HtmlTokenType.text,
+        HtmlTokenType.comment,
+        HtmlTokenType.tagCloseStart,
+        HtmlTokenType.tagName,
+        HtmlTokenType.tagCloseEnd,
+      ]);
+    });
   });
 }
 

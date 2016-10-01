@@ -24,6 +24,10 @@ class HtmlTokenImpl implements HtmlToken {
   @override
   final HtmlTokenType type;
 
+  /// Comment token.
+  factory HtmlTokenImpl.comment(SourceSpan source) =>
+      new HtmlTokenImpl._(HtmlTokenType.comment, source);
+
   /// Text token.
   factory HtmlTokenImpl.text(SourceSpan source) =>
       new HtmlTokenImpl._(HtmlTokenType.text, source);
@@ -83,6 +87,9 @@ enum HtmlTokenType {
 
   /// `>` after `</`
   tagCloseEnd,
+
+  /// <!--VALUE-->
+  comment,
 }
 
 /// Error.
@@ -101,8 +108,6 @@ class HtmlTokenError {
 
 /// What the [HtmlLexer] is doing.
 enum HtmlLexerState {
-  none,
-
   /// Scanning text.
   scanningText,
 
@@ -112,8 +117,8 @@ enum HtmlLexerState {
   /// Scanning close tag.
   scanningCloseTag,
 
-  /// Scanning the tag name in the </...>
-  scanningClosingTagName,
+  /// Scanning a comment.
+  scanningComment,
 }
 
 /// Produces [HtmlToken]s from a [String].
@@ -190,6 +195,16 @@ class HtmlLexer {
             if (hasTextSpan()) {
               yield new HtmlTokenImpl.text(_span());
             }
+            if (_scanner.peekChar(1) == $exclamation &&
+                _scanner.peekChar(2) == $dash &&
+                _scanner.peekChar(3) == $dash) {
+              _scanner.readChar();
+              _scanner.readChar();
+              _scanner.readChar();
+              _state = HtmlLexerState.scanningComment;
+              _reset();
+              break;
+            }
             _scanner.readChar();
             if (_scanner.scanChar($slash)) {
               _state = HtmlLexerState.scanningCloseTag;
@@ -223,10 +238,19 @@ class HtmlLexer {
             _state = HtmlLexerState.scanningText;
           }
           break;
-        default:
-          throw new UnimplementedError(
-            '$_state ("${new String.fromCharCode(_scanner.peekChar())}")',
-          );
+        case HtmlLexerState.scanningComment:
+          if (_scanner.peekChar(0) == $dash &&
+              _scanner.peekChar(1) == $dash &&
+              _scanner.peekChar(2) == $gt) {
+            _sentinel++;
+            yield new HtmlTokenImpl.comment(_span());
+            _scanner.readChar();
+            _scanner.readChar();
+            _scanner.readChar();
+            _reset();
+            _state = HtmlLexerState.scanningText;
+          }
+          break;
       }
       if (index == _scanner.position) {
         _scanner.readChar();
