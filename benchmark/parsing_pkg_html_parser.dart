@@ -1,5 +1,5 @@
 import 'package:benchmark_harness/benchmark_harness.dart';
-import 'package:html_parser/src/parser.dart';
+import 'package:html_parser/html_parser.dart';
 
 import 'shared/html.dart';
 
@@ -12,6 +12,6 @@ class PkgHtmlBenchmark extends BenchmarkBase {
 
   @override
   void run() {
-    const HtmlParser().parse(HTML);
+    parseHtml(HTML);
   }
 }

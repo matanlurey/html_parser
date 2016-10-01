@@ -6,15 +6,17 @@ abstract class HtmlParser {
   const factory HtmlParser() = _NodeBuilderHtmlParser;
 
   /// Returns a DOM [Node] by parsing [html].
-  Node parse(String html);
+  Node parse(String html, {/* Uri | String */ sourceUrl});
 }
 
 class _NodeBuilderHtmlParser implements HtmlParser {
   const _NodeBuilderHtmlParser();
 
   @override
-  Node parse(String html) {
-    return new _NodeBuilder(new HtmlLexer(html).tokenize().iterator).build();
+  Node parse(String html, {/* Uri | String */ sourceUrl}) {
+    return new _NodeBuilder(
+            new HtmlLexer(html, sourceUrl: sourceUrl).tokenize().iterator)
+        .build();
   }
 }
 
