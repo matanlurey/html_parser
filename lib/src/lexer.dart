@@ -116,7 +116,6 @@ enum HtmlLexerState {
   scanningClosingTagName,
 }
 
-
 /// Produces [HtmlToken]s from a [String].
 class HtmlLexer {
   final LineScanner _scanner;
@@ -149,23 +148,23 @@ class HtmlLexer {
     _reset();
     return span;
   }
+
   // Creates a source span from the beginning of the line, with line info.
   SourceSpan _errorContext() {
     int start = _scanner.position - _scanner.column;
     int stop = _scanner.position;
     return new SourceSpan(
-      new SourceLocation(
-        start,
-        sourceUrl: _scanner.sourceUrl,
-        line: _scanner.line,
-      ),
-      new SourceLocation(
-        stop,
-        sourceUrl: _scanner.sourceUrl,
-        line: _scanner.line,
-      ),
-      _scanner.substring(start, stop)
-    );
+        new SourceLocation(
+          start,
+          sourceUrl: _scanner.sourceUrl,
+          line: _scanner.line,
+        ),
+        new SourceLocation(
+          stop,
+          sourceUrl: _scanner.sourceUrl,
+          line: _scanner.line,
+        ),
+        _scanner.substring(start, stop));
   }
 
   SourceSpan _point([int offset = 0]) {
@@ -201,8 +200,8 @@ class HtmlLexer {
               yield new HtmlTokenImpl.tagOpenStart(_point());
             }
           } else if (_scanner.scanChar($gt)) {
-            throw new LexerError(_errorContext(),
-              LexerErrorKind.misMatchedClose);
+            throw new LexerError(
+                _errorContext(), LexerErrorKind.misMatchedClose);
           }
           break;
         case HtmlLexerState.scanningOpenTag:
@@ -213,8 +212,7 @@ class HtmlLexer {
             _state = HtmlLexerState.scanningText;
           } else if (_scanner.scanChar($lt)) {
             throw new LexerError(
-              _errorContext(),
-              LexerErrorKind.misMatchedOpen);
+                _errorContext(), LexerErrorKind.misMatchedOpen);
           }
           break;
         case HtmlLexerState.scanningCloseTag:
