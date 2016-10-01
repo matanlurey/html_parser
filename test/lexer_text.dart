@@ -1,4 +1,5 @@
 import 'package:html_parser/src/lexer.dart';
+import 'package:html_parser/src/error.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -15,7 +16,6 @@ void main() {
         HtmlTokenType.tagCloseEnd,
       ]);
     });
-
     test('should lex a tag name correctly', () {
       final lex = new HtmlLexer('<strong>Hello</strong>');
       final token = lex.tokenize().elementAt(1);
@@ -44,7 +44,15 @@ void main() {
         HtmlTokenType.text, // "\n"
       ]);
     });
-
+    test('it should throw basic missmatched tag errors', () {
+      final raw =
+          '<h1>\n<p [baz]="foo"> This is markup</p>\n<div>some mo</div></h1>>';
+      final lexer = new HtmlLexer(raw);
+      expect(
+          () => lexer.tokenize().toList(),
+          throwsA(predicate((e) =>
+              e is LexerError && e.kind == LexerErrorKind.misMatchedClose)));
+    });
     test('supports lexing comments', () {
       final lex = new HtmlLexer('<div>Hello<!--World--></div>');
       expect(_toTypes(lex).toList(), [
