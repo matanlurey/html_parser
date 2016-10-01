@@ -44,6 +44,21 @@ void main() {
         HtmlTokenType.text, // "\n"
       ]);
     });
+
+    test('supports lexing comments', () {
+      final lex = new HtmlLexer('<div>Hello<!--World--></div>');
+      expect(_toTypes(lex).toList(), [
+        HtmlTokenType.tagOpenStart,
+        HtmlTokenType.tagName,
+        HtmlTokenType.tagOpenEnd,
+        HtmlTokenType.text,
+        HtmlTokenType.comment,
+        HtmlTokenType.tagCloseStart,
+        HtmlTokenType.tagName,
+        HtmlTokenType.tagCloseEnd,
+      ]);
+    });
+
     test('it should throw basic missmatched tag errors', () {
       final raw =
           '<h1>\n<p [baz]="foo"> This is markup</p>\n<div>some mo</div></h1>>';
@@ -53,6 +68,7 @@ void main() {
           throwsA(predicate((e) =>
               e is LexerError && e.kind == LexerErrorKind.misMatchedClose)));
     });
+
     test('supports lexing comments', () {
       final lex = new HtmlLexer('<div>Hello<!--World--></div>');
       expect(_toTypes(lex).toList(), [
