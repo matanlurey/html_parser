@@ -47,4 +47,10 @@ void main() {
     final fragment = const HtmlParser().parse(html);
     expect(nodeToString(fragment), html);
   });
+
+  test('should parse comments', () {
+    const html = '<div>Hello<!--World--></div>';
+    final fragment = const HtmlParser().parse(html);
+    expect(nodeToString(fragment), html);
+  });
 }
