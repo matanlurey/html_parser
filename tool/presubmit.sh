@@ -27,3 +27,6 @@ echo "PASSED"
 set -e
 
 pub run test
+
+# Make sure that the benchmarks can execute.
+dart benchmark/run_all.dart

@@ -9,7 +9,7 @@ void main() {
      */
     final fragment = const HtmlParser().parse('<strong>Hello World</strong>');
     expect(fragment.childNodes, [
-      new Element('strong', [
+      new Element('strong', childNodes: [
         new Text('Hello World'),
       ]),
     ]);
@@ -26,9 +26,9 @@ void main() {
     final fragment = const HtmlParser().parse(html);
     expect(nodeToString(fragment), html);
     expect(fragment.childNodes, [
-      new Element('div', [
+      new Element('div', childNodes: [
         new Text('\n  '),
-        new Element('span', [new Text('Hello World')]),
+        new Element('span', childNodes: [new Text('Hello World')]),
         new Text('\n'),
       ]),
       new Text('\n'),
@@ -50,6 +50,30 @@ void main() {
 
   test('should parse comments', () {
     const html = '<div>Hello<!--World--></div>';
+    final fragment = const HtmlParser().parse(html);
+    expect(nodeToString(fragment), html);
+  });
+
+  test('should parse attributes', () {
+    const html = '<button class="fancy" disabled></button>';
+    final fragment = const HtmlParser().parse(html);
+    expect(fragment.childNodes, [
+      new Element('button', attributes: [
+        new Attribute('class', 'fancy'),
+        new Attribute('disabled'),
+      ])
+    ]);
+    expect(nodeToString(fragment), html);
+  });
+
+  test('should parse attributes with whitespace', () {
+    const html = r'''
+      <button
+        [disabled]="disabled"
+        (click)="onClick">
+          Hello World
+      </button>
+    ''';
     final fragment = const HtmlParser().parse(html);
     expect(nodeToString(fragment), html);
   });
