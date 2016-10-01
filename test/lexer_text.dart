@@ -16,7 +16,6 @@ void main() {
         HtmlTokenType.tagCloseEnd,
       ]);
     });
-
     test('should lex a tag name correctly', () {
       final lex = new HtmlLexer('<strong>Hello</strong>');
       final token = lex.tokenize().elementAt(1);
