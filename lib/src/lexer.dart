@@ -2,6 +2,8 @@ import 'package:charcode/charcode.dart';
 import 'package:source_span/source_span.dart';
 import 'package:string_scanner/string_scanner.dart';
 
+import 'lexer_error.dart';
+
 /// A parsed HTML token.
 abstract class HtmlToken {
   /// Where the token is from.
@@ -114,9 +116,10 @@ enum HtmlLexerState {
   scanningClosingTagName,
 }
 
+
 /// Produces [HtmlToken]s from a [String].
 class HtmlLexer {
-  final StringScanner _scanner;
+  final LineScanner _scanner;
 
   HtmlLexerState _state = HtmlLexerState.scanningText;
   int _sentinel = 0;
@@ -124,7 +127,7 @@ class HtmlLexer {
   /// Create a new [HtmlLexer] to lex [contents] from [sourceUrl].
   factory HtmlLexer(String contents, {/*String|Uri*/ sourceUrl}) {
     return new HtmlLexer._fromScanner(
-        new StringScanner(contents, sourceUrl: sourceUrl));
+        new LineScanner(contents, sourceUrl: sourceUrl));
   }
 
   // An HtmlTokenizer wraps a StringScanner instance.
@@ -145,6 +148,24 @@ class HtmlLexer {
     );
     _sentinel = _scanner.position;
     return span;
+  }
+  // Creates a source span from the beginning of the line, with line info.
+  SourceSpan _errorContext() {
+    int start = _scanner.position - _scanner.column;
+    int stop = _scanner.position;
+    return new SourceSpan(
+      new SourceLocation(
+        start,
+        sourceUrl: _scanner.sourceUrl,
+        line: _scanner.line,
+      ),
+      new SourceLocation(
+        stop,
+        sourceUrl: _scanner.sourceUrl,
+        line: _scanner.line,
+      ),
+      _scanner.substring(start, stop)
+    );
   }
 
   SourceSpan _point([int offset = 0]) => new SourceLocation(
@@ -171,6 +192,9 @@ class HtmlLexer {
               _state = HtmlLexerState.scanningOpenTag;
               yield new HtmlTokenImpl.tagOpenStart(_point());
             }
+          } else if (_scanner.scanChar($gt)) {
+            throw new LexerError(_errorContext(),
+              LexerErrorKind.misMatchedClose);
           }
           break;
         case HtmlLexerState.scanningOpenTag:
@@ -178,6 +202,10 @@ class HtmlLexer {
             yield new HtmlTokenImpl.tagName(_span());
             yield new HtmlTokenImpl.tagOpenEnd(_point());
             _state = HtmlLexerState.scanningText;
+          } else if (_scanner.scanChar($lt)) {
+            throw new LexerError(
+              _errorContext(),
+              LexerErrorKind.misMatchedOpen);
           }
           break;
         case HtmlLexerState.scanningCloseTag:
