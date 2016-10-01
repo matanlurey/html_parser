@@ -1,4 +1,5 @@
 import 'package:charcode/charcode.dart';
+import 'package:html_parser/src/utils.dart';
 import 'package:source_span/source_span.dart';
 import 'package:string_scanner/string_scanner.dart';
 
@@ -21,6 +22,22 @@ class HtmlTokenImpl implements HtmlToken {
 
   @override
   final HtmlTokenType type;
+
+  /// Before an attribute name.
+  factory HtmlTokenImpl.attributeNameStart(SourceSpan source) =>
+      new HtmlTokenImpl._(HtmlTokenType.attributeNameStart, source);
+
+  /// An attribute name.
+  factory HtmlTokenImpl.attributeName(SourceSpan source) =>
+      new HtmlTokenImpl._(HtmlTokenType.attributeName, source);
+
+  /// Before an attribute value.
+  factory HtmlTokenImpl.attributeValueStart(SourceSpan source) =>
+      new HtmlTokenImpl._(HtmlTokenType.attributeValueStart, source);
+
+  /// An attribute value in "s.
+  factory HtmlTokenImpl.attributeValueDoubleQuotes(SourceSpan source) =>
+      new HtmlTokenImpl._(HtmlTokenType.attributeValueDoubleQuotes, source);
 
   /// Comment token.
   factory HtmlTokenImpl.comment(SourceSpan source) =>
@@ -88,6 +105,18 @@ enum HtmlTokenType {
 
   /// <!--VALUE-->
   comment,
+
+  /// Before the name of an attribute.
+  attributeNameStart,
+
+  /// A full attribute name.
+  attributeName,
+
+  /// Before the value of an attribute.
+  attributeValueStart,
+
+  /// An attribute value in "'s (and implicitly the end of the attribute).
+  attributeValueDoubleQuotes,
 }
 
 /// Error.
@@ -117,6 +146,15 @@ enum HtmlLexerState {
 
   /// Scanning a comment.
   scanningComment,
+
+  /// Scanning an attribute.
+  scanningForAttribute,
+
+  /// Scanning an attribute name.
+  scanningAttributeName,
+
+  /// Scanning an attribute value.
+  scanningAttributeValue,
 }
 
 /// Produces [HtmlToken]s from a [String].
@@ -136,17 +174,17 @@ class HtmlLexer {
   HtmlLexer._fromScanner(this._scanner);
 
   // Creates a source span based on start --> _scanner.position.
-  SourceSpan _span() {
+  SourceSpan _span([int offset = 0]) {
     final span = new SourceSpan(
       new SourceLocation(
-        _sentinel,
+        _sentinel + offset,
         sourceUrl: _scanner.sourceUrl,
       ),
       new SourceLocation(
-        _scanner.position,
+        _scanner.position + offset,
         sourceUrl: _scanner.sourceUrl,
       ),
-      _scanner.substring(_sentinel),
+      _scanner.substring(_sentinel + offset),
     );
     _reset();
     return span;
@@ -202,6 +240,9 @@ class HtmlLexer {
             _scanner.readChar();
             yield new HtmlTokenImpl.tagOpenEnd(_point());
             _state = HtmlLexerState.scanningText;
+          } else if (isWhitespace(_scanner.peekChar())) {
+            yield new HtmlTokenImpl.tagName(_span());
+            _state = HtmlLexerState.scanningForAttribute;
           }
           break;
         case HtmlLexerState.scanningCloseTag:
@@ -224,6 +265,56 @@ class HtmlLexer {
             _reset();
             _state = HtmlLexerState.scanningText;
           }
+          break;
+        case HtmlLexerState.scanningForAttribute:
+          if (_scanner.peekChar() == $gt) {
+            _scanner.readChar();
+            yield new HtmlTokenImpl.tagOpenEnd(_span());
+            _state = HtmlLexerState.scanningText;
+          } else if (!isWhitespace(_scanner.peekChar())) {
+            yield new HtmlTokenImpl.attributeNameStart(_span());
+            _state = HtmlLexerState.scanningAttributeName;
+          } else {
+            // TODO: Error.
+          }
+          break;
+        case HtmlLexerState.scanningAttributeName:
+          if (isWhitespace(_scanner.peekChar()) || _scanner.peekChar() == $gt) {
+            yield new HtmlTokenImpl.attributeName(_span());
+            if (_scanner.scanChar($gt)) {
+              yield new HtmlTokenImpl.tagOpenEnd(_span());
+              _state = HtmlLexerState.scanningText;
+            } else {
+              _scanner.readChar();
+              _state = HtmlLexerState.scanningForAttribute;
+            }
+          } else if (_scanner.scanChar($equal)) {
+            yield new HtmlTokenImpl.attributeName(_span());
+            while (!_scanner.scanChar($double_quote)) {
+              if (!isWhitespace(_scanner.readChar())) {
+                // TODO: Make this a pretty contextual error message.
+                throw new FormatException('Unexpected character parsing value');
+              }
+            }
+            yield new HtmlTokenImpl.attributeValueStart(_span());
+            _state = HtmlLexerState.scanningAttributeValue;
+            _reset();
+          } else if (_scanner.scanChar($gt)) {
+            yield new HtmlTokenImpl.tagOpenEnd(_span());
+            _state = HtmlLexerState.scanningText;
+          }
+          break;
+        case HtmlLexerState.scanningAttributeValue:
+          while (true) {
+            if (_scanner.peekChar() == $double_quote) {
+              break;
+            }
+            _scanner.readChar();
+          }
+          yield new HtmlTokenImpl.attributeValueDoubleQuotes(_span());
+          _scanner.readChar();
+          _reset();
+          _state = HtmlLexerState.scanningForAttribute;
           break;
       }
       if (index == _scanner.position) {

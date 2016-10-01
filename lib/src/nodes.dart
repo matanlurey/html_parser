@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:html_parser/src/lexer.dart';
 
 int _combine(int hash, int value) {
   hash = 0x1fffffff & (hash + value);
@@ -33,13 +34,33 @@ class Fragment extends Node {
   int get hashCode => const ListEquality().hash(childNodes);
 }
 
+class Attribute extends Node {
+  final HtmlToken before;
+  final String name;
+  final String value;
+
+  Attribute(this.name, [this.value, this.before]);
+
+  @override
+  List<Node> get childNodes => const [];
+
+  @override
+  bool operator ==(o) => o is Attribute && o.name == name && o.value == value;
+
+  @override
+  int get hashCode => _combine(name.hashCode, value.hashCode);
+}
+
 class Element extends Node {
+  final List<Attribute> attributes;
+
   @override
   final List<Node> childNodes;
   final String tagName;
 
-  Element(this.tagName, [List<Node> childNodes])
-      : this.childNodes = childNodes ?? <Node>[];
+  Element(this.tagName, {List<Attribute> attributes, List<Node> childNodes})
+      : this.attributes = attributes ?? <Attribute>[],
+        this.childNodes = childNodes ?? <Node>[];
 
   @override
   bool operator ==(o) =>
@@ -82,7 +103,14 @@ String nodeToString(Node node, [StringBuffer buffer]) {
     return buffer.toString();
   }
   if (node is Element) {
-    buffer..write('<')..write(node.tagName)..write('>');
+    buffer..write('<')..write(node.tagName);
+    for (final attr in node.attributes) {
+      buffer..write(attr.before.value)..write(attr.name);
+      if (attr.value != null) {
+        buffer..write('"')..write(attr.value)..write('"');
+      }
+    }
+    buffer.write('>');
     for (final child in node.childNodes) {
       nodeToString(child, buffer);
     }
