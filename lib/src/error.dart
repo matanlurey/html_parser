@@ -10,8 +10,8 @@ abstract class SourceError extends Error {
 
   @override
   String toString() {
-    final line = span.start.line.toString();
-    return '\n---- PARSE ERROR ----------- ${span.sourceUrl?.path ?? 'No File'}\n' +
+    final line = source.start.line.toString();
+    return '\n---- PARSE ERROR ----------- ${source.sourceUrl?.path ?? 'No File'}\n' +
         '\n' +
         'There was a problem while parsing the following line:\n' +
         '$line| ${source.text}\n' +
