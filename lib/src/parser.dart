@@ -1,5 +1,6 @@
 import 'lexer.dart';
 import 'nodes.dart';
+import 'package:html_parser/src/utils.dart';
 
 /// Parses raw HTML strings into a tree of DOM nodes.
 abstract class HtmlParser {
@@ -105,7 +106,9 @@ class _NodeBuilder {
       if (_stack.isNotEmpty) {
         _stack.last.childNodes.add(element);
       }
-      _stack.add(element);
+      if (!isVoid(tagName)) {
+        _stack.add(element);
+      }
       var nextNextToken = _tokens.advance();
       if (nextNextToken.type == HtmlTokenType.attributeNameStart) {
         _consumeAttribute(nextNextToken);

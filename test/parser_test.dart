@@ -77,4 +77,17 @@ void main() {
     final fragment = const HtmlParser().parse(html);
     expect(nodeToString(fragment), html);
   });
+
+  test('should supports void elements', () {
+    const html = 'Hello<br>World<div><hr></div>';
+    final fragment = const HtmlParser().parse(html);
+    expect(fragment.childNodes, [
+      new Text('Hello'),
+      new Element('br'),
+      new Text('World'),
+      new Element('div', childNodes: [
+        new Element('hr'),
+      ]),
+    ]);
+  });
 }
