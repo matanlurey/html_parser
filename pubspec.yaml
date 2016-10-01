@@ -7,5 +7,8 @@ homepage: https://github.com/matanlurey/html_parser
 dependencies:
   charcode:
 dev_dependencies:
+  angular2:
+  benchmark_harness:
   dart_style:
+  html:
   test:
