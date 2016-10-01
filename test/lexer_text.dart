@@ -43,6 +43,7 @@ void main() {
         HtmlTokenType.tagCloseEnd, // "</"
         HtmlTokenType.text, // "\n"
       ]);
+    });
     test('it should throw basic missmatched tag errors', () {
       final raw =
           '<h1>\n<p [baz]="foo"> This is markup</p>\n<div>some mo</div></h1>>';
@@ -53,7 +54,6 @@ void main() {
               e is LexerError && e.kind == LexerErrorKind.misMatchedClose)));
     });
   });
-});
 }
 
 Iterable<HtmlTokenType> _toTypes(HtmlLexer htmlLexer) =>
