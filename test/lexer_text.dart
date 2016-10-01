@@ -59,6 +59,69 @@ void main() {
       ]);
     });
 
+    test('supports lexing attributes with values', () {
+      final lex = new HtmlLexer('<div class="fancy"></div>');
+      expect(_toTypes(lex).toList(), [
+        HtmlTokenType.tagOpenStart,
+        HtmlTokenType.tagName,
+        HtmlTokenType.attributeNameStart,
+        HtmlTokenType.attributeName,
+        HtmlTokenType.attributeValueStart,
+        HtmlTokenType.attributeValueDoubleQuotes,
+        HtmlTokenType.tagOpenEnd,
+        HtmlTokenType.tagCloseStart,
+        HtmlTokenType.tagName,
+        HtmlTokenType.tagCloseEnd,
+      ]);
+    });
+
+    test('supports lexing multiple attributes', () {
+      final lex = new HtmlLexer('<button class="fancy" disabled></button>');
+      expect(_toTypes(lex).toList(), [
+        HtmlTokenType.tagOpenStart,
+        HtmlTokenType.tagName,
+        HtmlTokenType.attributeNameStart,
+        HtmlTokenType.attributeName,
+        HtmlTokenType.attributeValueStart,
+        HtmlTokenType.attributeValueDoubleQuotes,
+        HtmlTokenType.attributeNameStart,
+        HtmlTokenType.attributeName,
+        HtmlTokenType.tagOpenEnd,
+        HtmlTokenType.tagCloseStart,
+        HtmlTokenType.tagName,
+        HtmlTokenType.tagCloseEnd,
+      ]);
+    });
+
+    test('supports lexing attributes with whitespace', () {
+      final lex = new HtmlLexer(r'''
+        <button
+          [disabled]="disabled"
+          (click)="onClick">
+            Hello World
+        </button>
+      ''');
+      expect(_toTypes(lex).toList(), [
+        HtmlTokenType.text,
+        HtmlTokenType.tagOpenStart,
+        HtmlTokenType.tagName,
+        HtmlTokenType.attributeNameStart,
+        HtmlTokenType.attributeName,
+        HtmlTokenType.attributeValueStart,
+        HtmlTokenType.attributeValueDoubleQuotes,
+        HtmlTokenType.attributeNameStart,
+        HtmlTokenType.attributeName,
+        HtmlTokenType.attributeValueStart,
+        HtmlTokenType.attributeValueDoubleQuotes,
+        HtmlTokenType.tagOpenEnd,
+        HtmlTokenType.text,
+        HtmlTokenType.tagCloseStart,
+        HtmlTokenType.tagName,
+        HtmlTokenType.tagCloseEnd,
+        HtmlTokenType.text,
+      ]);
+    });
+
     test('it should throw basic missmatched tag errors', () {
       final raw =
           '<h1>\n<p [baz]="foo"> This is markup</p>\n<div>some mo</div></h1>>';
