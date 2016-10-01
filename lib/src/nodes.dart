@@ -73,17 +73,11 @@ String nodeToString(Node node, [StringBuffer buffer]) {
     return buffer.toString();
   }
   if (node is Element) {
-    buffer
-      ..write('<')
-      ..write(node.tagName)
-      ..write('>');
+    buffer..write('<')..write(node.tagName)..write('>');
     for (final child in node.childNodes) {
       nodeToString(child, buffer);
     }
-    buffer
-      ..write('</')
-      ..write(node.tagName)
-      ..write('>');
+    buffer..write('</')..write(node.tagName)..write('>');
   } else if (node is Text) {
     buffer.write(node.value);
   }

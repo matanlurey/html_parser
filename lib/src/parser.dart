@@ -49,9 +49,9 @@ class _NodeBuilder {
 
   Node build() {
     if (_tokens.eof) {
-      return new Fragment(<Node> []);
+      return new Fragment(<Node>[]);
     }
-    _stack.add(new Fragment(<Node> []));
+    _stack.add(new Fragment(<Node>[]));
     while (!_tokens.eof) {
       switch (_tokens.peek().type) {
         case HtmlTokenType.tagOpenStart:

@@ -28,9 +28,7 @@ void main() {
     expect(fragment.childNodes, [
       new Element('div', [
         new Text('\n  '),
-        new Element('span', [
-          new Text('Hello World')
-        ]),
+        new Element('span', [new Text('Hello World')]),
         new Text('\n'),
       ]),
       new Text('\n'),
