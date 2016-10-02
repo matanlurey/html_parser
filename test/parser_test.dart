@@ -90,4 +90,28 @@ void main() {
       ]),
     ]);
   });
+
+  test('should parse attributes', () {
+    const html = '<button class="fancy" disabled></button>';
+    final fragment = const HtmlParser().parse(html);
+    expect(fragment.childNodes, [
+      new Element('button', attributes: [
+        new Attribute('class', 'fancy'),
+        new Attribute('disabled'),
+      ])
+    ]);
+    expect(nodeToString(fragment), html);
+  });
+
+  test('should parse attributes with whitespace', () {
+    const html = r'''
+      <button
+        [disabled]="disabled"
+        (click)="onClick">
+          Hello World
+      </button>
+    ''';
+    final fragment = const HtmlParser().parse(html);
+    expect(nodeToString(fragment), html);
+  });
 }
