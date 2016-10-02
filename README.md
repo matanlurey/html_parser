@@ -32,7 +32,7 @@ void main() {
 
 A lot is missing from making this a package ready to use.
 
-- [ ] Does not [attributes][i6], yet.
+- [x] Supports [attributes][i6]!.
 - [ ] Needs to be battle-tested on [more complex documents][i2].
 - [ ] Needs user friendly ways ([CSS][i4], [visitors][i3]) to traverse.
 - [ ] Needs to [handle error messages][i5].
