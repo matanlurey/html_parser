@@ -77,4 +77,41 @@ void main() {
     final fragment = const HtmlParser().parse(html);
     expect(nodeToString(fragment), html);
   });
+
+  test('should supports void elements', () {
+    const html = 'Hello<br>World<div><hr></div>';
+    final fragment = const HtmlParser().parse(html);
+    expect(fragment.childNodes, [
+      new Text('Hello'),
+      new Element('br'),
+      new Text('World'),
+      new Element('div', childNodes: [
+        new Element('hr'),
+      ]),
+    ]);
+  });
+
+  test('should parse attributes', () {
+    const html = '<button class="fancy" disabled></button>';
+    final fragment = const HtmlParser().parse(html);
+    expect(fragment.childNodes, [
+      new Element('button', attributes: [
+        new Attribute('class', 'fancy'),
+        new Attribute('disabled'),
+      ])
+    ]);
+    expect(nodeToString(fragment), html);
+  });
+
+  test('should parse attributes with whitespace', () {
+    const html = r'''
+      <button
+        [disabled]="disabled"
+        (click)="onClick">
+          Hello World
+      </button>
+    ''';
+    final fragment = const HtmlParser().parse(html);
+    expect(nodeToString(fragment), html);
+  });
 }
