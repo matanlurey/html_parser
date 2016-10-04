@@ -8,12 +8,14 @@ A fast and forgiving HTML parser for Dart. Loosely based on
 
 This package is **in development** as an experiment to replace the
 transpiled HTML parser from [angular_2][angular_2_gh]. It is not meant
-to be a full DOM parser, or to emulate behavior of the browser.
+to be a full DOM parser, or to emulate behavior of the browser - for
+that see [package:html](pkg_html).
 
 Goals are speed, ease of use, and [great error messages][elm].
 
 [angular_2_gh]: https://github.com/dart-lang/angular2
 [elm]: http://elm-lang.org/blog/compiler-errors-for-humans
+[pkg_html]: https://pub.dartlang.org/packages/html
 
 ## Usage
 
