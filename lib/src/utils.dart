@@ -143,19 +143,18 @@ bool isKnownTag(String tagName) {
   return voidTags.contains(lowerName) || regularTags.contains(lowerName);
 }
 
-/// Retrieves all tags which are not known as part of the HTML spec.
+/// Retrieves all tags used in the tree starting with [element]
 ///
-/// This can be used to identify cases where the developer forgot to include
-/// a component in directives.
-/// __example__:
-///     final xs = nonNativeTags(element);
-///     print(xs);
-///     // prints ["my-div", "foo-bar"]
-Iterable<String> nonNativeTags(Element element) sync* {
-  if (!isKnownTag(element.tagName)) {
-    yield element.tagName;
-  }
+/// When combined with isKnownTag, can produce an iterable of tag names
+/// which need to be found in Directives.
+///
+/// # Example use
+///     Element root = ...
+///     final nonNativeTags = usedTags(root).where((x) => !isKnownTag(x));
+///     
+Iterable<String> usedTags(Element element) sync* {
+  yield element.tagName;
   for (Element child in element.childNodes) {
-    yield* nonNativeTags(child);
+    yield* usedTags(child);
   }
 }
