@@ -1,6 +1,6 @@
 import 'lexer.dart';
 import 'nodes.dart';
-import 'package:html_parser/src/utils.dart';
+import 'utils.dart';
 
 /// Parses raw HTML strings into a tree of DOM nodes.
 abstract class HtmlParser {
