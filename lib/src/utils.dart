@@ -7,7 +7,7 @@ const List<String> unsupportedTags = const [
 ];
 
 /// Defines `void` HTML elements (no closing tag).
-Set<String> voidTags = new Set.from([
+final Set<String> voidTags = new Set.from([
   'area',
   'base',
   'basefont',
@@ -16,7 +16,7 @@ Set<String> voidTags = new Set.from([
   'col',
   'command',
   'embed',
-  //'frame', -- is this still a valid HTML5 tag?
+  'frame',
   'hr',
   'img',
   'input',
@@ -30,7 +30,7 @@ Set<String> voidTags = new Set.from([
 ]);
 
 /// Defines normal HTML elements (requires closing tags).
-Set<String> regularTags = new Set.from([
+final Set<String> regularTags = new Set.from([
   'a',
   'abbr',
   'address',
@@ -137,12 +137,6 @@ bool isWhitespace(int c) =>
 /// Whether [tagName] is a considered a `void` HTML element (no closing tag).
 bool isVoid(String tagName) => voidTags.contains(tagName.toLowerCase());
 
-/// Whether [tagName] is a know HTML element, or a web/angular component.
-bool isKnownTag(String tagName) {
-  final lowerName = tagName.toLowerCase();
-  return voidTags.contains(lowerName) || regularTags.contains(lowerName);
-}
-
 /// Retrieves all tags used in the tree starting with [element]
 ///
 /// When combined with isKnownTag, can produce an iterable of tag names
@@ -150,8 +144,8 @@ bool isKnownTag(String tagName) {
 ///
 /// # Example use
 ///     Element root = ...
-///     final nonNativeTags = usedTags(root).where((x) => !isKnownTag(x));
-///     
+///     final divs = usedTags(root).where((x) => x == 'div');
+///
 Iterable<String> usedTags(Element element) sync* {
   yield element.tagName;
   for (Element child in element.childNodes) {
