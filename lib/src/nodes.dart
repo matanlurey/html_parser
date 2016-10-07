@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
-import 'package:html_parser/src/lexer.dart';
+
+import 'lexer.dart';
 
 int _combine(int hash, int value) {
   hash = 0x1fffffff & (hash + value);
