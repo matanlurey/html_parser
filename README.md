@@ -24,7 +24,7 @@ import 'package:html_parser/html_parser.dart';
 
 void main() {
   var fragment = parseHtml('<div>Hello World</div>');
-  
+
   // Prints: '<div>Hello World</div>'
   print(nodeToString(fragment));
 }
