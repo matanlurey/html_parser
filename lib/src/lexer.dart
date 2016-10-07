@@ -1,9 +1,9 @@
 import 'package:charcode/charcode.dart';
-import 'package:html_parser/src/utils.dart';
 import 'package:source_span/source_span.dart';
 import 'package:string_scanner/string_scanner.dart';
 
 import 'error.dart';
+import 'utils.dart';
 
 /// A parsed HTML token.
 abstract class HtmlToken {
