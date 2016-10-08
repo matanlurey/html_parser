@@ -23,6 +23,7 @@ abstract class SourceError extends Error {
 /// Simple errors which can occur during lexical analysis.
 class LexerError extends SourceError {
   /// The source span where the error was encountered, from column 0.
+  @override
   final SourceSpan source;
 
   /// Additional lexer context into the failure.

@@ -4,14 +4,16 @@ import 'package:html_parser/html_parser.dart';
 import 'shared/html.dart';
 
 void main() {
-  new PkgHtmlBenchmark().report();
+  const PkgHtmlParserBenchmark().report();
 }
 
-class PkgHtmlBenchmark extends BenchmarkBase {
-  const PkgHtmlBenchmark() : super('package:html_parser');
+/// Runs the `package:html_parser` benchmark.
+class PkgHtmlParserBenchmark extends BenchmarkBase {
+  /// Create the benchmark.
+  const PkgHtmlParserBenchmark() : super('package:html_parser');
 
   @override
   void run() {
-    parseHtml(HTML);
+    parseHtml(html);
   }
 }

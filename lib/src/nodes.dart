@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 
 import 'lexer.dart';
+import 'printer.dart';
 
 int _combine(int hash, int value) {
   hash = 0x1fffffff & (hash + value);
@@ -8,23 +9,33 @@ int _combine(int hash, int value) {
   return hash ^ (hash >> 6);
 }
 
+/// Base node AST.
 abstract class Node {
+  /// Child nodes if any.
   List<Node> get childNodes;
+
+  @override
+  String toString() => nodeToString(this);
 }
 
+/// Comment node AST.
 class Comment extends Node {
+  /// Text within the comment.
   final String value;
 
+  /// Create a comment.
   Comment(this.value);
 
   @override
   List<Node> get childNodes => const [];
 }
 
+/// Document fragment node AST.
 class Fragment extends Node {
   @override
   final List<Node> childNodes;
 
+  /// Create a fragment.
   Fragment(this.childNodes);
 
   @override
@@ -35,11 +46,18 @@ class Fragment extends Node {
   int get hashCode => const ListEquality().hash(childNodes);
 }
 
+/// Attribute node AST.
 class Attribute extends Node {
+  /// Token before the attribute, if any.
   final HtmlToken before;
+
+  /// Name of the attribute.
   final String name;
+
+  /// Value of the attribute.
   final String value;
 
+  /// Create an attribute.
   Attribute(this.name, [this.value, this.before]);
 
   @override
@@ -52,13 +70,18 @@ class Attribute extends Node {
   int get hashCode => _combine(name.hashCode, value.hashCode);
 }
 
+/// Element node AST.
 class Element extends Node {
+  /// Attributes of the element.
   final List<Attribute> attributes;
 
   @override
   final List<Node> childNodes;
+
+  /// Name of the element.
   final String tagName;
 
+  /// Create a new element.
   Element(this.tagName, {List<Attribute> attributes, List<Node> childNodes})
       : this.attributes = attributes ?? <Attribute>[],
         this.childNodes = childNodes ?? <Node>[];
@@ -72,14 +95,14 @@ class Element extends Node {
   @override
   int get hashCode =>
       _combine(const ListEquality().hash(childNodes), tagName.hashCode);
-
-  @override
-  String toString() => '<$tagName>${childNodes.join('')}</$tagName>';
 }
 
+/// Text node AST.
 class Text extends Node {
+  /// Text value.
   final String value;
 
+  /// Create a text node.
   Text(this.value);
 
   @override
@@ -90,36 +113,7 @@ class Text extends Node {
 
   @override
   int get hashCode => value.hashCode;
-
-  @override
-  String toString() => value;
 }
 
-String nodeToString(Node node, [StringBuffer buffer]) {
-  if (node is Fragment) {
-    buffer ??= new StringBuffer();
-    for (final child in node.childNodes) {
-      nodeToString(child, buffer);
-    }
-    return buffer.toString();
-  }
-  if (node is Element) {
-    buffer..write('<')..write(node.tagName);
-    for (final attr in node.attributes) {
-      buffer..write(attr.before.value)..write(attr.name);
-      if (attr.value != null) {
-        buffer..write('"')..write(attr.value)..write('"');
-      }
-    }
-    buffer.write('>');
-    for (final child in node.childNodes) {
-      nodeToString(child, buffer);
-    }
-    buffer..write('</')..write(node.tagName)..write('>');
-  } else if (node is Text) {
-    buffer.write(node.value);
-  } else if (node is Comment) {
-    buffer..write('<!--')..write(node.value)..write('-->');
-  }
-  return '';
-}
+/// Returns [node] as an HTML string.
+String nodeToString(Node node) => (new PrinterHtmlVisitor()..visitNode(node)).toString();

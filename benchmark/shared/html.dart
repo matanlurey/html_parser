@@ -1,4 +1,5 @@
-const HTML = r'''
+/// A deep tree of HTML.
+const html = r'''
 <a>
   <b>
     <c>

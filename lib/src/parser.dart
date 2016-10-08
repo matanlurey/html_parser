@@ -1,22 +1,28 @@
 import 'lexer.dart';
 import 'nodes.dart';
 import 'utils.dart';
+import 'visitor.dart';
 
 /// Parses raw HTML strings into a tree of DOM nodes.
 abstract class HtmlParser {
+  /// Create a new default [HtmlParser].
   const factory HtmlParser() = _NodeBuilderHtmlParser;
 
   /// Returns a DOM [Node] by parsing [html].
-  Node parse(String html, {/* Uri | String */ sourceUrl});
+  ///
+  /// If [visitor] is specified, is called incrementally as the tree is built.
+  Node parse(String html, {/* Uri | String */ sourceUrl, HtmlVisitor<Node> visitor,});
 }
 
 class _NodeBuilderHtmlParser implements HtmlParser {
   const _NodeBuilderHtmlParser();
 
   @override
-  Node parse(String html, {/* Uri | String */ sourceUrl}) => new _NodeBuilder(
-          new HtmlLexer(html, sourceUrl: sourceUrl).tokenize().iterator)
-      .build();
+  Node parse(String html, {/* Uri | String */ sourceUrl, HtmlVisitor<Node> visitor: HtmlVisitor.identity,}) {
+    final lexer = new HtmlLexer(html, sourceUrl: sourceUrl);
+    final iterator = lexer.tokenize().iterator;
+    return new _NodeBuilder(iterator, visitor).build();
+  }
 }
 
 // Helper class to make iterating over an Iterator<Html> easier.
@@ -44,15 +50,17 @@ class _NodeBuilder {
   final List<Node> _root = <Node>[];
   final List<Node> _stack = <Node>[];
   final _IteratorReader<HtmlToken> _tokens;
+  final HtmlVisitor<Node> _visitor;
 
-  _NodeBuilder(Iterator<HtmlToken> iterator)
+  _NodeBuilder(Iterator<HtmlToken> iterator, [this._visitor = const _IdentityHtmlVisitor()])
       : _tokens = new _IteratorReader<HtmlToken>(iterator);
 
   Node build() {
+    final fragment = _visitor.visitFragment(new Fragment(<Node>[]));
     if (_tokens.eof) {
-      return new Fragment(<Node>[]);
+      return fragment;
     }
-    _stack.add(new Fragment(<Node>[]));
+    _stack.add(fragment);
     while (!_tokens.eof) {
       switch (_tokens.peek().type) {
         case HtmlTokenType.tagOpenStart:
@@ -65,7 +73,10 @@ class _NodeBuilder {
           _consumeText(_tokens.advance());
           break;
         case HtmlTokenType.comment:
-          _stack.last.childNodes.add(new Comment(_tokens.peek().value));
+          final comment = _visitor.visitComment(new Comment(_tokens.peek().value));
+          if (comment != null) {
+            _stack.last.childNodes.add(comment);
+          }
           _tokens.advance();
           break;
         default:
@@ -88,9 +99,13 @@ class _NodeBuilder {
       _tokens.advance();
       attributeValue = _tokens.advance().value;
     }
-    (_stack.last as Element).attributes.add(
-          new Attribute(attributeName, attributeValue, token),
-        );
+    final peek = _stack.last;
+    if (peek is Element) {
+      final attribute = _visitor.visitAttribute(new Attribute(attributeName, attributeValue, token));
+      if (attribute != null) {
+        peek.attributes.add(attribute);
+      }
+    }
     if (_tokens.peek().type == HtmlTokenType.attributeNameStart) {
       _tokens.advance();
       _consumeAttribute(token);
@@ -102,12 +117,14 @@ class _NodeBuilder {
     final nextToken = _tokens.advance();
     if (nextToken.type == HtmlTokenType.tagName) {
       final tagName = nextToken.value;
-      final element = new Element(tagName);
-      if (_stack.isNotEmpty) {
-        _stack.last.childNodes.add(element);
-      }
-      if (!isVoid(tagName)) {
-        _stack.add(element);
+      final element = _visitor.visitElement(new Element(tagName));
+      if (element != null) {
+        if (_stack.isNotEmpty) {
+          _stack.last.childNodes.add(element);
+        }
+        if (!isVoid(tagName)) {
+          _stack.add(element);
+        }
       }
       var nextNextToken = _tokens.advance();
       if (nextNextToken.type == HtmlTokenType.attributeNameStart) {
@@ -115,10 +132,10 @@ class _NodeBuilder {
         nextNextToken = _tokens.advance();
       }
       if (nextNextToken.type != HtmlTokenType.tagOpenEnd) {
-        throw new FormatException('Expected tagOpenEnd, got ${nextNextToken}');
+        throw new FormatException('Expected tagOpenEnd, got $nextNextToken');
       }
     } else {
-      throw new FormatException('Expected tagName, got ${nextToken}.');
+      throw new FormatException('Expected tagName, got $nextToken.');
     }
   }
 
@@ -133,12 +150,40 @@ class _NodeBuilder {
         _root.add(pop);
       }
     } else {
-      throw new FormatException('Expected tagName, got ${nextToken}');
+      throw new FormatException('Expected tagName, got $nextToken');
     }
   }
 
   void _consumeText(HtmlToken token) {
     assert(token.type == HtmlTokenType.text);
-    _stack.last.childNodes.add(new Text(token.value));
+    final text = _visitor.visitText(new Text(token.value));
+    if (text != null) {
+      _stack.last.childNodes.add(text);
+    }
   }
+}
+
+class _IdentityHtmlVisitor implements HtmlVisitor<Node> {
+  const _IdentityHtmlVisitor();
+
+  @override
+  Node visitAttribute(Attribute attribute) => attribute;
+
+  @override
+  Node visitChildren(Iterable<Node> nodes) => null;
+
+  @override
+  Node visitComment(Comment comment) => comment;
+
+  @override
+  Node visitElement(Element element) => element;
+
+  @override
+  Node visitFragment(Fragment fragment) => fragment;
+
+  @override
+  Node visitNode(Node node) => node;
+
+  @override
+  Node visitText(Text text) => text;
 }

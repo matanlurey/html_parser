@@ -1,5 +1,6 @@
 import 'package:html_parser/src/nodes.dart';
 import 'package:html_parser/src/parser.dart';
+import 'package:html_parser/src/visitor.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -113,5 +114,16 @@ void main() {
     ''';
     final fragment = const HtmlParser().parse(html);
     expect(nodeToString(fragment), html);
+  });
+
+  test('should support a streaming interceptor', () {
+    const html = r'<div><!--Hello-->World</div>';
+    final fragment = new HtmlParser().parse(
+        html,
+        visitor: HtmlVisitor.create(
+          visitComment: (Comment comment) => null,
+        ),
+    );
+    expect(nodeToString(fragment), '<div>World</div>');
   });
 }
