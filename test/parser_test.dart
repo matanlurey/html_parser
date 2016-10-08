@@ -119,10 +119,10 @@ void main() {
   test('should support a streaming interceptor', () {
     const html = r'<div><!--Hello-->World</div>';
     final fragment = new HtmlParser().parse(
-        html,
-        visitor: HtmlVisitor.create(
-          visitComment: (Comment comment) => null,
-        ),
+      html,
+      visitor: HtmlVisitor.create(
+        visitComment: (Comment comment) => null,
+      ),
     );
     expect(nodeToString(fragment), '<div>World</div>');
   });

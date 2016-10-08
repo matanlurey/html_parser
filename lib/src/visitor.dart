@@ -14,15 +14,16 @@ abstract class HtmlVisitor<T> {
     VisitFragment<Node> visitFragment,
     VisitNode<Node> visitNode,
     VisitText<Node> visitText,
-  }) => new _AnonymousHtmlVisitor(
-    visitAttribute: visitAttribute,
-    visitChildren: visitChildren,
-    visitComment: visitComment,
-    visitElement: visitElement,
-    visitFragment: visitFragment,
-    visitNode: visitNode,
-    visitText: visitText,
-  );
+  }) =>
+      new _AnonymousHtmlVisitor(
+        visitAttribute: visitAttribute,
+        visitChildren: visitChildren,
+        visitComment: visitComment,
+        visitElement: visitElement,
+        visitFragment: visitFragment,
+        visitNode: visitNode,
+        visitText: visitText,
+      );
 
   /// Identity visitor.
   static const HtmlVisitor<Node> identity = const _IdentityHtmlVisitor();
@@ -144,15 +145,15 @@ class _AnonymousHtmlVisitor extends _IdentityHtmlVisitor {
     VisitFragment<Node> visitFragment,
     VisitNode<Node> visitNode,
     VisitText<Node> visitText,
-  }) :
-      _visitAttribute = visitAttribute,
-      _visitChildren = visitChildren,
-      _visitComment = visitComment,
-      _visitElement = visitElement,
-      _visitFragment = visitFragment,
-      _visitNode = visitNode,
-      _visitText = visitText,
-      super();
+  })
+      : _visitAttribute = visitAttribute,
+        _visitChildren = visitChildren,
+        _visitComment = visitComment,
+        _visitElement = visitElement,
+        _visitFragment = visitFragment,
+        _visitNode = visitNode,
+        _visitText = visitText,
+        super();
 
   @override
   Node visitAttribute(Attribute attribute) {

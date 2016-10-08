@@ -116,4 +116,5 @@ class Text extends Node {
 }
 
 /// Returns [node] as an HTML string.
-String nodeToString(Node node) => (new PrinterHtmlVisitor()..visitNode(node)).toString();
+String nodeToString(Node node) =>
+    (new PrinterHtmlVisitor()..visitNode(node)).toString();

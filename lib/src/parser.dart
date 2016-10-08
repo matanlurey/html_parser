@@ -11,14 +11,24 @@ abstract class HtmlParser {
   /// Returns a DOM [Node] by parsing [html].
   ///
   /// If [visitor] is specified, is called incrementally as the tree is built.
-  Node parse(String html, {/* Uri | String */ sourceUrl, HtmlVisitor<Node> visitor,});
+  Node parse(
+    String html, {
+    /* Uri | String */
+    sourceUrl,
+    HtmlVisitor<Node> visitor,
+  });
 }
 
 class _NodeBuilderHtmlParser implements HtmlParser {
   const _NodeBuilderHtmlParser();
 
   @override
-  Node parse(String html, {/* Uri | String */ sourceUrl, HtmlVisitor<Node> visitor: HtmlVisitor.identity,}) {
+  Node parse(
+    String html, {
+    /* Uri | String */
+    sourceUrl,
+    HtmlVisitor<Node> visitor: HtmlVisitor.identity,
+  }) {
     final lexer = new HtmlLexer(html, sourceUrl: sourceUrl);
     final iterator = lexer.tokenize().iterator;
     return new _NodeBuilder(iterator, visitor).build();
@@ -52,7 +62,8 @@ class _NodeBuilder {
   final _IteratorReader<HtmlToken> _tokens;
   final HtmlVisitor<Node> _visitor;
 
-  _NodeBuilder(Iterator<HtmlToken> iterator, [this._visitor = const _IdentityHtmlVisitor()])
+  _NodeBuilder(Iterator<HtmlToken> iterator,
+      [this._visitor = const _IdentityHtmlVisitor()])
       : _tokens = new _IteratorReader<HtmlToken>(iterator);
 
   Node build() {
@@ -73,7 +84,8 @@ class _NodeBuilder {
           _consumeText(_tokens.advance());
           break;
         case HtmlTokenType.comment:
-          final comment = _visitor.visitComment(new Comment(_tokens.peek().value));
+          final comment =
+              _visitor.visitComment(new Comment(_tokens.peek().value));
           if (comment != null) {
             _stack.last.childNodes.add(comment);
           }
@@ -101,7 +113,8 @@ class _NodeBuilder {
     }
     final peek = _stack.last;
     if (peek is Element) {
-      final attribute = _visitor.visitAttribute(new Attribute(attributeName, attributeValue, token));
+      final attribute = _visitor
+          .visitAttribute(new Attribute(attributeName, attributeValue, token));
       if (attribute != null) {
         peek.attributes.add(attribute);
       }
