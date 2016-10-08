@@ -4,6 +4,8 @@ description: A fast and forgiving HTML parser for Dart.
 authors:
   - Matan Lurey <matanl@google.com>
 homepage: https://github.com/matanlurey/html_parser
+environment:
+  sdk: ">=1.8.0 <2.0.0"
 dependencies:
   charcode: ">=1.1.0 <2.0.0"
   collection: "^1.0.0"
