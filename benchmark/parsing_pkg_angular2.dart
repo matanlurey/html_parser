@@ -4,14 +4,16 @@ import 'package:benchmark_harness/benchmark_harness.dart';
 import 'shared/html.dart';
 
 void main() {
-  new PkgHtmlBenchmark().report();
+  const PkgAngular2Benchmark().report();
 }
 
-class PkgHtmlBenchmark extends BenchmarkBase {
-  const PkgHtmlBenchmark() : super('package:angular2');
+/// Runs `package:angular2`.
+class PkgAngular2Benchmark extends BenchmarkBase {
+  /// Create the benchmark.
+  const PkgAngular2Benchmark() : super('package:angular2');
 
   @override
   void run() {
-    new HtmlParser().parse(HTML, 'foo.html');
+    new HtmlParser().parse(html, 'foo.html');
   }
 }

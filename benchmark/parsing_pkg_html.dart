@@ -4,14 +4,16 @@ import 'package:html/dom.dart';
 import 'shared/html.dart';
 
 void main() {
-  new PkgHtmlBenchmark().report();
+  const PkgHtmlBenchmark().report();
 }
 
+/// Runs the benchmark for `package:html`.
 class PkgHtmlBenchmark extends BenchmarkBase {
+  /// Creates the benchmark.
   const PkgHtmlBenchmark() : super('package:html');
 
   @override
   void run() {
-    new DocumentFragment.html(HTML);
+    new DocumentFragment.html(html);
   }
 }
