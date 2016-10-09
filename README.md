@@ -32,19 +32,16 @@ void main() {
 
 ## Limitations
 
-A lot is missing from making this a package ready to use.
+Some things missing from making this a package ready to use for all:
 
-- [x] Supports [attributes][i6]!.
 - [ ] Needs to be battle-tested on [more complex documents][i2].
-- [ ] Needs user friendly ways ([CSS][i4], [visitors][i3]) to traverse.
+- [ ] Needs user friendly ways ([CSS][i4]) to traverse.
 - [ ] Needs to [handle error messages][i5].
 
 [i2]: https://github.com/matanlurey/html_parser/issues/2
-[i3]: https://github.com/matanlurey/html_parser/issues/3
 [i4]: https://github.com/matanlurey/html_parser/issues/4
 [i5]: https://github.com/matanlurey/html_parser/issues/5
-[i6]: https://github.com/matanlurey/html_parser/issues/6
 
-See [issues][issues] for more details.
+See [issues][issues] for more details and to contribute!
 
 [issues]: https://github.com/matanlurey/html_parser/issues

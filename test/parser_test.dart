@@ -14,6 +14,11 @@ void main() {
         new Text('Hello World'),
       ]),
     ]);
+
+    Text text = fragment.childNodes.first.childNodes.first;
+    final offset = '<strong>'.length;
+    expect(text.token.source.start.offset, offset);
+    expect(text.token.source.end.offset, 'Hello World'.length + offset);
   });
 
   test('should work for a nested case', () {
@@ -34,6 +39,14 @@ void main() {
       ]),
       new Text('\n'),
     ]);
+
+    Element span = fragment.childNodes.first.childNodes[1];
+    expect(
+      span.tagOpenSource.message(''),
+      'line 1, column 10: \n'
+          'span\n'
+          '^^^^',
+    );
   });
 
   test('should work for a very nested complicated case', () {
@@ -53,6 +66,11 @@ void main() {
     const html = '<div>Hello<!--World--></div>';
     final fragment = const HtmlParser().parse(html);
     expect(nodeToString(fragment), html);
+
+    Comment comment = fragment.childNodes.first.childNodes[1];
+    final offset = '<div>Hello'.length;
+    expect(comment.token.source.start.offset, offset);
+    expect(comment.token.source.end.offset, '<!--World-->'.length + offset);
   });
 
   test('should parse attributes', () {
@@ -77,6 +95,15 @@ void main() {
     ''';
     final fragment = const HtmlParser().parse(html);
     expect(nodeToString(fragment), html);
+
+    Element button = fragment.childNodes[1];
+    Attribute attribute = button.attributes.first;
+    expect(
+      attribute.source.message(''),
+      'line 1, column 23: \n'
+          '[disabled]="disabled"\n'
+          '^^^^^^^^^^^^^^^^^^^^^',
+    );
   });
 
   test('should supports void elements', () {
