@@ -1,9 +1,15 @@
+library html_parser.src.lexer;
+
 import 'package:charcode/charcode.dart';
 import 'package:source_span/source_span.dart';
 import 'package:string_scanner/string_scanner.dart';
 
 import 'error.dart';
 import 'utils.dart';
+
+part 'tokens/attribute_value_token.dart';
+part 'tokens/comment_token.dart';
+part 'tokens/text_token.dart';
 
 /// A parsed HTML token.
 abstract class HtmlToken {
@@ -36,18 +42,6 @@ class HtmlTokenImpl implements HtmlToken {
   /// Before an attribute value.
   factory HtmlTokenImpl.attributeValueStart(SourceSpan source) =>
       new HtmlTokenImpl._(HtmlTokenType.attributeValueStart, source);
-
-  /// An attribute value in "s.
-  factory HtmlTokenImpl.attributeValueDoubleQuotes(SourceSpan source) =>
-      new HtmlTokenImpl._(HtmlTokenType.attributeValueDoubleQuotes, source);
-
-  /// Comment token.
-  factory HtmlTokenImpl.comment(SourceSpan source) =>
-      new HtmlTokenImpl._(HtmlTokenType.comment, source);
-
-  /// Text token.
-  factory HtmlTokenImpl.text(SourceSpan source) =>
-      new HtmlTokenImpl._(HtmlTokenType.text, source);
 
   /// Before `<` token.
   factory HtmlTokenImpl.tagOpenStart(SourceSpan source) =>
@@ -118,7 +112,7 @@ enum HtmlTokenType {
   attributeValueStart,
 
   /// An attribute value in "'s (and implicitly the end of the attribute).
-  attributeValueDoubleQuotes,
+  attributeValue,
 }
 
 /// Error.
@@ -176,17 +170,20 @@ class HtmlLexer {
   HtmlLexer._fromScanner(this._scanner);
 
   // Creates a source span based on start --> _scanner.position.
-  SourceSpan _span([int offset = 0]) {
+  SourceSpan _span([int startOffset = 0, int endOffset = 0]) {
     final span = new SourceSpan(
       new SourceLocation(
-        _sentinel + offset,
+        _sentinel + startOffset,
         sourceUrl: _scanner.sourceUrl,
       ),
       new SourceLocation(
-        _scanner.position + offset,
+        _scanner.position + endOffset,
         sourceUrl: _scanner.sourceUrl,
       ),
-      _scanner.substring(_sentinel + offset),
+      _scanner.substring(
+        _sentinel + startOffset,
+        _scanner.position + endOffset,
+      ),
     );
     _reset();
     return span;
@@ -231,7 +228,7 @@ class HtmlLexer {
         case HtmlLexerState.scanningText:
           if (_scanner.peekChar() == $lt) {
             if (hasTextSpan()) {
-              yield new HtmlTokenImpl.text(_span());
+              yield new HtmlTextToken(_span());
             }
             if (_scanner.peekChar(1) == $exclamation &&
                 _scanner.peekChar(2) == $dash &&
@@ -284,7 +281,7 @@ class HtmlLexer {
               _scanner.peekChar(1) == $dash &&
               _scanner.peekChar(2) == $gt) {
             _sentinel++;
-            yield new HtmlTokenImpl.comment(_span());
+            yield new HtmlCommentToken(_span(-4, 3));
             _scanner.readChar();
             _scanner.readChar();
             _scanner.readChar();
@@ -337,7 +334,7 @@ class HtmlLexer {
             }
             _scanner.readChar();
           }
-          yield new HtmlTokenImpl.attributeValueDoubleQuotes(_span());
+          yield new HtmlAttributeValueToken(_span(-1, 1));
           _scanner.readChar();
           _reset();
           _state = HtmlLexerState.scanningForAttribute;
@@ -348,7 +345,7 @@ class HtmlLexer {
       }
     }
     if (_state == HtmlLexerState.scanningText && hasTextSpan()) {
-      yield new HtmlTokenImpl.text(_span());
+      yield new HtmlTextToken(_span());
     }
   }
 }

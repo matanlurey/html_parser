@@ -14,7 +14,7 @@ class PrinterHtmlVisitor extends HtmlVisitor<Null> {
 
   @override
   Null visitAttribute(Attribute attribute) {
-    _buffer..write(attribute.before.value)..write(attribute.name);
+    _buffer..write(attribute.beforeToken.value)..write(attribute.name);
     if (attribute.value != null) {
       _buffer..write('"')..write(attribute.value)..write('"');
     }

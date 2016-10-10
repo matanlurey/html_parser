@@ -63,7 +63,7 @@ class _NodeBuilder {
   final HtmlVisitor<Node> _visitor;
 
   _NodeBuilder(Iterator<HtmlToken> iterator,
-      [this._visitor = const _IdentityHtmlVisitor()])
+      [this._visitor = HtmlVisitor.identity])
       : _tokens = new _IteratorReader<HtmlToken>(iterator);
 
   Node build() {
@@ -84,8 +84,9 @@ class _NodeBuilder {
           _consumeText(_tokens.advance());
           break;
         case HtmlTokenType.comment:
-          final comment =
-              _visitor.visitComment(new Comment(_tokens.peek().value));
+          final comment = _visitor.visitComment(
+            new Comment.fromToken(_tokens.peek()),
+          );
           if (comment != null) {
             _stack.last.childNodes.add(comment);
           }
@@ -105,16 +106,21 @@ class _NodeBuilder {
     if (nextToken.type != HtmlTokenType.attributeName) {
       throw new FormatException('Expected attribute name, got $nextToken');
     }
-    final attributeName = nextToken.value;
-    String attributeValue;
+    HtmlToken valueToken;
+    HtmlToken valueStartToken;
     if (_tokens.peek().type == HtmlTokenType.attributeValueStart) {
+      valueStartToken = _tokens.peek();
       _tokens.advance();
-      attributeValue = _tokens.advance().value;
+      valueToken = _tokens.advance();
     }
     final peek = _stack.last;
     if (peek is Element) {
-      final attribute = _visitor
-          .visitAttribute(new Attribute(attributeName, attributeValue, token));
+      final attribute = _visitor.visitAttribute(new Attribute.fromTokens(
+        token,
+        nextToken,
+        valueStartToken,
+        valueToken,
+      ));
       if (attribute != null) {
         peek.attributes.add(attribute);
       }
@@ -130,19 +136,42 @@ class _NodeBuilder {
     final nextToken = _tokens.advance();
     if (nextToken.type == HtmlTokenType.tagName) {
       final tagName = nextToken.value;
-      final element = _visitor.visitElement(new Element(tagName));
+      Element element = _visitor.visitElement(new Element.fromTokens(
+        token,
+        nextToken,
+        null,
+      ));
+      List<Node> childStack;
+      List<Node> rootStack;
       if (element != null) {
         if (_stack.isNotEmpty) {
-          _stack.last.childNodes.add(element);
+          childStack = _stack.last.childNodes;
+          childStack.add(element);
         }
         if (!isVoid(tagName)) {
-          _stack.add(element);
+          rootStack = _stack;
+          rootStack.add(element);
         }
       }
       var nextNextToken = _tokens.advance();
       if (nextNextToken.type == HtmlTokenType.attributeNameStart) {
         _consumeAttribute(nextNextToken);
         nextNextToken = _tokens.advance();
+      }
+      element = new Element.fromTokens(
+        token,
+        nextToken,
+        nextNextToken,
+        attributes: element.attributes,
+        childNodes: element.childNodes,
+      );
+      if (childStack != null) {
+        childStack.removeLast();
+        childStack.add(element);
+      }
+      if (rootStack != null) {
+        rootStack.removeLast();
+        rootStack.add(element);
       }
       if (nextNextToken.type != HtmlTokenType.tagOpenEnd) {
         throw new FormatException('Expected tagOpenEnd, got $nextNextToken');
@@ -169,34 +198,9 @@ class _NodeBuilder {
 
   void _consumeText(HtmlToken token) {
     assert(token.type == HtmlTokenType.text);
-    final text = _visitor.visitText(new Text(token.value));
+    final text = _visitor.visitText(new Text.fromToken(token));
     if (text != null) {
       _stack.last.childNodes.add(text);
     }
   }
-}
-
-class _IdentityHtmlVisitor implements HtmlVisitor<Node> {
-  const _IdentityHtmlVisitor();
-
-  @override
-  Node visitAttribute(Attribute attribute) => attribute;
-
-  @override
-  Node visitChildren(Iterable<Node> nodes) => null;
-
-  @override
-  Node visitComment(Comment comment) => comment;
-
-  @override
-  Node visitElement(Element element) => element;
-
-  @override
-  Node visitFragment(Fragment fragment) => fragment;
-
-  @override
-  Node visitNode(Node node) => node;
-
-  @override
-  Node visitText(Text text) => text;
 }

@@ -1,5 +1,5 @@
 name: html_parser
-version: 0.5.0
+version: 0.6.0
 description: A fast and forgiving HTML parser for Dart.
 authors:
   - Matan Lurey <matanl@google.com>

@@ -1,7 +1,10 @@
 import 'src/parser.dart';
 import 'src/nodes.dart' show Fragment;
-export 'src/nodes.dart' show Element, Fragment, Node, Text, nodeToString;
+export 'src/nodes.dart'
+    show Attribute, Comment, Element, Fragment, Node, Text, nodeToString;
 export 'src/parser.dart' show HtmlParser;
+export 'src/printer.dart' show PrinterHtmlVisitor;
+export 'src/visitor.dart' show HtmlVisitor;
 
 /// Parses [html] into a DOM tree.
 ///
